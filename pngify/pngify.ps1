@@ -48,7 +48,7 @@ $RunScript = {
     # Check if path has already been specified; if not, check if Steam path exists, else default to C:\
     If (!$StoredPath)
     {
-        $SteamPath = Test-Path "C:\Program Files (x86)\Steam\steamapps\common"
+        $SteamPath = "C:\Program Files (x86)\Steam\steamapps\common"
         $PathTest = Test-Path $SteamPath
         $InputFile = If ($PathTest) {Get-FileName $SteamPath} Else {Get-FileName "C:\"}
     }
