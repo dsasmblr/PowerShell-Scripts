@@ -1,10 +1,19 @@
+<#
+    Script: pngify
+    By: Stephen Chapman
+    Site: http://dsasmblr.com/blog
+    GitHub: http://github.com/dsasmblr
+#>
+
+#-----------------#
 # -- FUNCTIONS -- #
+#-----------------#
 
 # Script header
 Function Script-Header()
 {
     Write-Host "#------------------#`r"
-    Write-Host "   pngifierScript   `r"
+    Write-Host "    p-n-g-i-f-y    `r"
     Write-Host " By Stephen Chapman`r"
     Write-Host "    dsasmblr.com   `r"
     Write-Host "#------------------#`n"
@@ -21,7 +30,11 @@ Function Get-FileName($DirToPath)
     $OpenFileDialog.filename
 }
 
+
+#--------------------------#
 # -- SCRIPT ENTRY POINT -- #
+#--------------------------#
+
 
 # Global variable
 $InputFile = ""
