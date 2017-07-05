@@ -11,7 +11,7 @@
 #-----------------#
 
 
-# Script header
+#Script header
 Function Script-Header()
 {
     Write-Host "#-----------------------#`r"
@@ -21,10 +21,11 @@ Function Script-Header()
     Write-Host "#-----------------------#`n"
 }
 
-# Allows user to choose file to extract files from
+#Allows user to choose file to extract files from
 Function Get-FileName()
 {
     If ($StoredFilePath -Eq "") {
+        #Tries to default to Steam directory
         $SteamPath = "C:\Program Files (x86)\Steam\steamapps\common"
         $SteamPathTest = Test-Path $SteamPath
         $FilePath = If ($SteamPathTest) {$SteamPath} Else {"C:\"}
@@ -32,19 +33,22 @@ Function Get-FileName()
         $FilePath = $StoredFilePath
     }
 
+    #Dialog box to select file
     [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.InitialDirectory = $FilePath
     $OpenFileDialog.ShowDialog() | Out-Null
     $OpenFileDialog.FileName
 
+    #Store file path
     $Global:StoredFilePath = $OpenFileDialog.FileName.TrimEnd([System.IO.Path]::GetFileName($OpenFileDialog.FileName))
 }
 
-# Allows user to choose folder to extract files to
+#Allows user to choose folder to extract files to
 Function Get-FolderName($Origin)
 {
     If ($StoredDirPath -Eq ""){
+        #Tries to default to Steam directory first, then desktop
         $SteamPath = "C:\Stephen\Steam\steamapps\common"
         $SteamPathTest = Test-Path $SteamPath
         $DesktopPath = [Environment]::GetFolderPath("Desktop")
@@ -54,10 +58,10 @@ Function Get-FolderName($Origin)
         $DirPath = $StoredDirPath
     }
 
+    #Dialog box to select file
     Add-Type -Assembly "System.Windows.Forms"
     $FolderBrowser = New-Object System.Windows.Forms.FolderBrowserDialog
     $FolderBrowser.SelectedPath = $DirPath
-    #$FolderBrowser.ShowDialog() | Out-Null
     If ($FolderBrowser.ShowDialog() -eq "Cancel") {
         User-Choice
     }
@@ -68,15 +72,14 @@ Function Get-FolderName($Origin)
     }
 }
 
-# Extracts files from selected file, to selected folder
+#Extracts files from selected file, to selected folder
 Function Extract-Files($Origin, $FilesToExtract, $DirToExtractTo)
 {
     If ($Origin -Eq "UserChoice") {
-
         # This block is ran if user specifies a particular file to extract
-
         Do {
-            $File = Get-FileName # Assign path to file
+            #Assign path to file
+            $File = Get-FileName
             If ($File -Eq "") {
                 Write-Host "`nAre you sure you want to cancel?"
                 $Answer = Read-Host "[Y] to cancel, [Enter] to choose a file"
@@ -89,7 +92,8 @@ Function Extract-Files($Origin, $FilesToExtract, $DirToExtractTo)
         Read-Host "`nFile selected! Now press [Enter] to choose a directory to extract to"
         
         Do {
-            $Folder = Get-FolderName # Assign path to extraction folder
+            #Assign path to extraction folder
+            $Folder = Get-FolderName
             If ($Folder -Eq "") {
                 Write-Host "`nAre you sure you want to cancel?"
                 $Answer = Read-Host "[Y] to cancel, [Enter] to choose a file"
@@ -99,47 +103,64 @@ Function Extract-Files($Origin, $FilesToExtract, $DirToExtractTo)
             }
         } While ($Folder -Eq "")
         
-        $FileName = [System.IO.Path]::GetFileName($File) # Assign original filename for use and preservation
+        #Assign original filename for use and preservation
+        $FileName = [System.IO.Path]::GetFileName($File)
 
-        # Check for .zip extension and provision for Expand-Archive's file extension requirement
+        #Check for .zip extension and provision for Expand-Archive's file extension requirement
         If ($File -NotLike "*.zip") {
-            $FileNameWithZip = $FileName + ".zip" # Create filename with .zip extension
-            Rename-Item -Path $File -NewName $FileNameWithZip # Rename the file in the folder
-            $NewPath = $File.TrimEnd($FileName) # Create new path to renamed file (1)
-            $NewPath += $FileNameWithZip # Create new path to renamed file (2)
+            #Create filename with .zip extension
+            $FileNameWithZip = $FileName + ".zip"
+            #Rename the file in the folder
+            Rename-Item -Path $File -NewName $FileNameWithZip
+            #Create new path to renamed file
+            $NewPath = $File.TrimEnd($FileName) 
+            $NewPath += $FileNameWithZip
+            #Create directory based on file name
             $NewDir = New-Item -Path $Folder -Name $FileName -Type Directory
-            Expand-Archive -LiteralPath $NewPath -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue # Extract files
-            Rename-Item -Path $NewPath -NewName $FileName # Rename the file in the folder to its original name
+            #Extract file(s) from archive
+            Expand-Archive -LiteralPath $NewPath -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue
+            #Rename the file in the folder to its original name
+            Rename-Item -Path $NewPath -NewName $FileName
         } Else {
+            #Create directory based on file name
             $NewDir = New-Item -Path $Folder -Name $FileName -Type Directory
-            Expand-Archive -LiteralPath $File -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue # Extract files if extension is already .zip
+            #Extract file(s) from archive if extension is already .zip
+            Expand-Archive -LiteralPath $File -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue
         }
     } Else {
-
-        # This block is ran if user had a directory scanned
-
+        #This block is ran if user had a directory scanned
         ForEach ($FileName in $FilesToExtract) {
+            
+            #Assign original filename for use and preservation
             $OriginalFileName = [System.IO.Path]::GetFileName($FileName)
 
             # Check for .zip extension and provision for Expand-Archive's file extension requirement
             If ($FileName -NotLike "*.zip") {
-                $FileNameWithZip = $FileName + ".zip" # Create filename with .zip extension
-                Rename-Item -Path $FileName -NewName $FileNameWithZip # Rename the file in the folder
-                $NewPath = $FileName.TrimEnd($FileName) # Create new path to renamed file for Expand-Archive
-                $NewPath += $FileNameWithZip # New path creation continued
+                #Create filename with .zip extension
+                $FileNameWithZip = $FileName + ".zip"
+                #Rename the file in the folder
+                Rename-Item -Path $FileName -NewName $FileNameWithZip
+                #Create new path to renamed file for Expand-Archive
+                $NewPath = $FileName.TrimEnd($FileName)
+                $NewPath += $FileNameWithZip
+                #Create directory based on file name
                 $NewDir = New-Item -Path $DirToExtractTo -Name $OriginalFileName -Type Directory
-                Expand-Archive -LiteralPath $NewPath -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue # Extract files (-Force overwrites)
+                #Extract file(s) from archive
+                Expand-Archive -LiteralPath $NewPath -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue
+
                 Rename-Item -Path $NewPath -NewName $FileName # Rename the file in the folder to its original name
             } Else {
+                #Create directory based on file name
                 $NewDir = New-Item -Path $DirToExtractTo -Name $OriginalFileName -Type Directory
-                Expand-Archive -LiteralPath $FileName -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue # Extract files if extension is already .zip
+                #Extract file(s) from archive if extension is already .zip
+                Expand-Archive -LiteralPath $FileName -DestinationPath $NewDir -Force -ErrorAction SilentlyContinue
             }
         }
     }
-    #Check for errors in extraction and let user know to try extracting to root.    
+    #TO DO: Check for errors in extraction and let user know to try extracting to root.    
 }
 
-# Scans a folder and all sub-folders for files that can be extracted
+#Scans a folder and all sub-folders for files that can be extracted
 Function Scan-Files()
 {
     cls
@@ -153,19 +174,17 @@ Function Scan-Files()
     Write-Host "--------------------------------------------------------------------"
     Write-Host "\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\`n"
   
+    #Get directory and all children to scan, then scan them and place all file names and paths into an array
     Do {
         $FilesToScan = Get-FolderName | Get-ChildItem -Recurse -File | Select-Object -ExpandProperty FullName
         If ($FilesToScan.Count -Lt 1) {
             cls
             Script-Header
             Write-Host "You selected an empty folder. Please select a different folder."
-            #$Answer = Read-Host "[Y] to cancel, [Enter] to choose a folder"
-            #If ($Answer -Eq "Y") {
-            #    User-Choice
-            #}
         }
     } While ($FilesToScan.Count -Lt 1)
 
+    #Magic number check to see if each file in the array is zip-compressed or not
     $FilesToScan = ForEach ($FileName in $FilesToScan) {
         Try {
             $i = [System.BitConverter]::ToString((Get-Content $FileName -ReadCount 1 -TotalCount 4 -Encoding Byte))
@@ -183,7 +202,7 @@ Function Scan-Files()
         }
     }
 
-    #Check for empty array
+    #Check for empty array and send user into a rescan flow accordingly
     If ($FileArray.Count -Lt 1) {
 
         cls
@@ -203,6 +222,7 @@ Function Scan-Files()
         } While ($UserSelection -Ne "Y" -And $UserSelection -Ne "N") 
     }
 
+    #Ask user if they want to extract files or start over 
     Write-Host "`nScan completed!"
     Write-Host "`nPress [Enter] to select a folder to extract files to or [S] to start over"
     $UserSelection = Read-Host "(Tip: Press [S] to start over if you want to extract individual files from the results)"
@@ -216,7 +236,7 @@ Function Scan-Files()
     }
 }
 
-# Choose option
+#Initial user choice to scan directory or extract file
 Function User-Choice()
 {
     cls
@@ -234,7 +254,6 @@ Function User-Choice()
             Write-Host "`nWat? Please choose one of the following:"
         }
     } While ($UserSelection -Ne "S" -And $UserSelection -Ne "E")
-
 }
 
 
@@ -250,8 +269,6 @@ $Global:ExtractTo = ""
 User-Choice
 
 Do {
-    #cls
-    #Script-Header
     $UserYesNo = Read-Host "`nExtraction complete! Start over? [Y] to start over or any other key to exit"
     If ($UserYesNo -Eq "Y") {
         Clear-Host
