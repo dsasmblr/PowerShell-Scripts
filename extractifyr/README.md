@@ -1,12 +1,14 @@
 # extractifyr
-This script is a work in progress. Currently, it allows the user to specify a file that is zip-compressed, a folder to extract the files to, and then it extracts the files. The file extension of the user's selected file doesn't matter so long as the first two bytes of its magic number start with 0x50 0x4B (PK).
+*This script is a work in progress.*
+
+**extractifyr** is a PowerShell script that will identify all zip files within a directory (as well as all child directories therein) and present the option to extract those files. Alternately, the user can specify a file to extract. Even if the file isn't named .zip, if it's a zip-compressed archive, it will be found! This is very useful for quickly dumping zip-compressed resources from video game directories, etc.
+
+![ScreenShot](http://dsasmblr.com/github/img/extractifyr-image.png)
 
 **Instructions:**
 
-1. *Select a file to extract.*
-2. *Select a directory to extract to.*
+1. *Select a file to extract or a folder to scan.*
+2. *Select a directory to extract the file(s) to.*
 3. *Do it again if you want.* =)
 
 There will be a lot more coming for this script, in which this space will be updated accordingly!
-
-![ScreenShot](http://dsasmblr.com/github/img/extractifyr-image.png)
