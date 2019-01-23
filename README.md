@@ -1,2 +1,2 @@
-# PowerShell-Scripts
-Collection of PowerShell scripts made by yours truly.
+# PowerShell Scripts
+Collection of extensive PowerShell scripts I've written.
